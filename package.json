@@ -1,0 +1,20 @@
+{
+  "name": "lumeet-relay",
+  "version": "2.0.88",
+  "private": true,
+  "type": "module",
+  "description": "Lumeet｜見你 的橋接器：iPhone 網頁版，加上讓 Claude、ChatGPT 透過 MCP 接進來視訊、聊天",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "RELAY_SECRET": {
+        "description": "橋接密碼。自己設一組 **24 個字以上的英文加數字**，存好，之後 App 的「橋接密碼」和 AI 的 MCP 網址都要用到。"
+      }
+    }
+  }
+}

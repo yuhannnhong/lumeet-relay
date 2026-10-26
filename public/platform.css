@@ -1,0 +1,200 @@
+/* iOS Safari and Android WebView share the visual system, with separate platform entries. */
+:root {
+  --keyboard-offset: 0px;
+  --visible-height: 100vh;
+}
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.app[data-page='incoming'] main,
+.app[data-page='call'] main {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.chat-list-panel {
+  min-height: calc(100vh - 164px);
+  min-height: calc(100dvh - 164px);
+}
+.topbar {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+}
+.topbar.compact {
+  margin-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-top: 13px;
+}
+.bottom-nav {
+  bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + var(--keyboard-offset));
+}
+.composer {
+  bottom: calc(max(13px, env(safe-area-inset-bottom, 0px)) + var(--keyboard-offset));
+}
+.sheet {
+  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + var(--keyboard-offset));
+  max-height: calc(var(--visible-height) - 36px - env(safe-area-inset-top, 0px));
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.app[data-page='incoming'] main,
+.app[data-page='call'] main {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+}
+.toast {
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px) + var(--keyboard-offset));
+}
+input,
+textarea,
+.composer-input input,
+.search-box input {
+  font-size: 16px;
+}
+.keyboard-open .bottom-nav {
+  display: none;
+}
+.keyboard-open .composer {
+  padding-bottom: 7px;
+}
+.keyboard-open main {
+  padding-bottom: 120px;
+}
+html[data-platform='ios'] body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html[data-platform='ios'] input:not([type='checkbox']):not([type='radio']),
+html[data-platform='ios'] textarea {
+  -webkit-appearance: none;
+  border-radius: 15px;
+}
+.composer-input input,
+.composer-input textarea {
+  border-radius: 0 !important;
+}
+html[data-platform='android'] body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html[data-platform='android'] .glass {
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+}
+@supports not (background: color-mix(in srgb, red, white)) {
+  .app:not([data-theme='amber']) .gold,
+  .app:not([data-theme='amber']) .outgoing .bubble {
+    background: var(--accent);
+    border-color: #fff0d2;
+    box-shadow:
+      inset 0 1px 4px #fff6d9bb,
+      0 3px 13px #80542440;
+  }
+  .app:not([data-theme='amber']) .nav-item.active {
+    background: #fff2d980;
+  }
+  .app:not([data-theme='amber']) .icon-disc {
+    background: #fff2d980;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background-color: rgba(255, 233, 205, 0.91);
+  }
+  .app[data-theme='midnight'] .glass {
+    background-color: rgba(26, 38, 61, 0.96);
+  }
+}
+@media (min-width: 700px) {
+  .app {
+    min-height: calc(100vh - 44px);
+    min-height: calc(100dvh - 44px);
+  }
+  .bottom-nav,
+  .composer {
+    bottom: calc(34px + var(--keyboard-offset));
+  }
+  .sheet {
+    bottom: calc(34px + var(--keyboard-offset));
+  }
+  .topbar {
+    padding-top: 19px;
+  }
+  .app[data-page='incoming'] main,
+  .app[data-page='call'] main {
+    min-height: calc(100vh - 44px);
+    min-height: calc(100dvh - 44px);
+  }
+}
+@media (max-height: 740px) and (max-width: 699px) {
+  .call-page {
+    padding-top: 20px;
+  }
+  .call-page .incoming-label {
+    margin: 16px 0 20px;
+  }
+  .caller-portrait {
+    width: 168px;
+    height: 168px;
+  }
+  .call-page .wave-pill {
+    margin-top: 15px;
+  }
+  .call-page h1 {
+    font-size: 33px;
+  }
+  .call-page .invitation {
+    margin: 8px 0 13px;
+    font-size: 14px;
+  }
+  .call-quote {
+    padding: 12px;
+    font-size: 13px;
+  }
+  .call-extra {
+    margin-top: 12px;
+    margin-bottom: 14px;
+  }
+  .call-control .round,
+  .call-controls .accept {
+    width: 63px;
+    height: 63px;
+  }
+  .call-controls {
+    padding-top: 13px;
+    padding-bottom: 12px;
+  }
+  .sanctuary-hero {
+    padding-top: 220px;
+  }
+}
+.top-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 勾選框：上面拿掉了輸入框的系統樣式，勾選框要留著，不然會縮成看不見 */
+input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--accent);
+}
+/* 聊天室的頂部導覽固定在上面，往上捲也能直接按返回、電話、視訊 */
+.topbar.compact {
+  position: sticky;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  z-index: 20;
+  background: #fff6e8d9;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+/* 不讓畫面被縮放：輸入框字小於 16px 時手機會自動放大，雙指也會把導覽推歪 */
+html {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+input,
+textarea,
+select {
+  font-size: max(16px, 1em);
+}

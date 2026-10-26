@@ -1,0 +1,27 @@
+name = "lumeet-relay"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+# 讓轉送走公開網路：不然轉到同一個帳號底下的其他 Worker（例如記憶庫）會被 Cloudflare 擋成 1042
+compatibility_flags = ["global_fetch_strictly_public"]
+
+# iPhone 網頁版：public/ 裡的檔案直接當網站送出，其他路徑（MCP、通話）才交給 Worker
+[assets]
+directory = "./public"
+
+# 通話、聊天、設定都存在這個 Durable Object 裡，部署時會自動建立
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "CallRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["CallRoom"]
+
+# 每分鐘檢查一次自喚醒時間，到了就用 Bark 推播（App 關著也叫得到妳）
+[triggers]
+crons = ["* * * * *"]
+
+# 選用：綁定 R2 讓 AI 有「視覺記憶」，要用再自己打開
+# [[r2_buckets]]
+# binding = "VISION"
+# bucket_name = "你的 bucket 名稱"

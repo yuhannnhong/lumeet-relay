@@ -1,0 +1,199 @@
+/* 2.0 暖光主題：蓋在 v1 的 tailwind 樣式上面，版面不動，只換顏色和材質 */
+:root {
+  --c-ink: #3a2210;
+  --c-muted: #7a5a40;
+  --c-cream: rgba(255, 246, 230, 0.9);
+  --c-glass: rgba(255, 238, 212, 0.34);
+  --c-chip: rgba(255, 246, 232, 0.62);
+  --c-rim: rgba(255, 252, 236, 0.7);
+  --c-gold: linear-gradient(140deg, #ffd57b 0%, #df8a16 38%, #b3660b 72%, #914900 100%);
+}
+body { background: #372317 !important; color: #fff8ec; }
+body main {
+  background: #6b3d16 url(../assets/cabin.webp) center / cover no-repeat !important;
+  box-shadow: 0 25px 80px rgba(60, 28, 6, 0.6) !important;
+}
+#video-stage { background: transparent !important; }
+#video-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(90, 44, 10, 0.18), rgba(255, 214, 150, 0.06) 40%, rgba(80, 38, 8, 0.32));
+  pointer-events: none;
+}
+
+/* 開始前：他的頭像 + 金色按鈕 */
+#launcher-face {
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff4dc;
+  box-shadow: 0 0 0 10px rgba(255, 226, 170, 0.28), 0 18px 40px rgba(90, 40, 6, 0.45);
+}
+#launcher-hint { font-family: Georgia, 'Noto Serif TC', serif; color: #fff7e6; text-shadow: 0 1px 8px rgba(80, 36, 6, 0.6); }
+#btn-start {
+  background: var(--c-gold) !important;
+  border: 1px solid #fff0b4 !important;
+  color: #fff8e9 !important;
+  box-shadow: inset 0 1px 4px #fff8c7, 0 0 0 3px #ffedb349, 0 8px 22px rgba(120, 60, 6, 0.45);
+  padding: 0 34px;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+/* 頂部 */
+#btn-back, #btn-menu {
+  background: var(--c-glass) !important;
+  border-color: var(--c-rim) !important;
+  color: #fffaf0 !important;
+}
+#connection-status { background: rgba(110, 56, 14, 0.35) !important; color: #fff3df !important; border-color: var(--c-rim) !important; }
+
+/* 自拍小窗 */
+#self-cam { background: rgba(255, 238, 212, 0.4) !important; border: 2px solid var(--c-rim) !important; }
+#btn-pause-cam { background: var(--c-chip) !important; color: var(--c-ink) !important; border-color: var(--c-rim) !important; }
+
+/* 字幕 */
+.capsule-glass {
+  background: rgba(96, 52, 16, 0.55) !important;
+  border-color: rgba(255, 230, 190, 0.35) !important;
+  color: #fff8ec !important;
+}
+
+/* 底部控制面板 */
+.control-glass {
+  background: linear-gradient(160deg, rgba(255, 248, 230, 0.5), rgba(255, 228, 190, 0.32)) !important;
+  border-top: 1px solid var(--c-rim) !important;
+  box-shadow: 0 -8px 32px rgba(110, 50, 6, 0.28) !important;
+}
+footer button > div:not(.bg-\[\#e0524c\]) {
+  background: var(--c-chip) !important;
+  border-color: var(--c-rim) !important;
+  color: var(--c-ink) !important;
+}
+footer button > span { color: var(--c-ink) !important; }
+#btn-end > div { background: #d9614c !important; box-shadow: 0 4px 16px rgba(200, 80, 50, 0.4) !important; }
+#call-status { color: var(--c-ink) !important; }
+#call-timer { color: var(--c-muted) !important; }
+#input-say {
+  background: var(--c-cream) !important;
+  border-color: var(--c-rim) !important;
+  color: var(--c-ink) !important;
+}
+#input-say::placeholder { color: #a98667 !important; }
+#btn-send { background: var(--c-gold) !important; color: #fff8e9 !important; }
+#action-chips button { background: var(--c-chip) !important; border-color: var(--c-rim) !important; color: var(--c-ink) !important; }
+footer > div:last-child { border-color: rgba(120, 70, 30, 0.15) !important; color: var(--c-muted) !important; }
+
+/* 設定面板：奶油色 */
+#settings-sheet { background: rgba(70, 34, 8, 0.4) !important; }
+#settings-sheet > section {
+  background: #fff4e2 !important;
+  border-color: #fff9ec !important;
+  color: var(--c-ink);
+}
+#settings-sheet p, #settings-sheet label, #settings-sheet h2, #settings-sheet span { color: var(--c-muted) !important; }
+#settings-sheet h2 { color: var(--c-ink) !important; }
+#settings-sheet input:not([type='radio']):not([type='checkbox']):not([type='file']),
+#settings-sheet select,
+#settings-sheet textarea {
+  background: #fffaf1 !important;
+  border: 1px solid #ecd6b6 !important;
+  color: var(--c-ink) !important;
+}
+#settings-sheet button { color: var(--c-ink); }
+#settings-sheet button.bg-\[\#f5f0ea\], #btn-save-settings { background: var(--c-gold) !important; color: #fff8e9 !important; }
+#settings-sheet #btn-close-settings { background: #f3e2c8 !important; }
+
+/* 同意畫面、iPhone 聲音解鎖 */
+#consent > div, #consent > section { background: #fff4e2 !important; color: var(--c-ink) !important; }
+#consent { background: rgba(70, 34, 8, 0.55) !important; }
+#settings-sheet [role='radiogroup'] span { background: #fffaf1 !important; border: 1px solid #ecd6b6 !important; color: var(--c-muted) !important; }
+#settings-sheet input:checked + span { background: var(--c-gold) !important; border-color: #fff0b4 !important; color: #fff8e9 !important; }
+#app-managed-note { color: var(--c-ink) !important; background: #fde9c8; border-radius: 12px; padding: 10px 12px; }
+.sound-bar { background: #d98a1c !important; }
+footer .text-\[\#34d399\] { color: #d98a1c !important; }
+#settings-sheet [data-stt-preset], #btn-copy-mcp { background: #f3e2c8 !important; border-color: #ecd6b6 !important; color: var(--c-ink) !important; }
+
+/* AR 合拍：後鏡頭背景＋摳綠的他 */
+#video-stage.ar-on > video:not(#ar-bg) {
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+#ar-bg,
+#ar-fg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#ar-bg {
+  object-fit: cover;
+}
+#ar-shot {
+  position: fixed;
+  right: 16px;
+  top: calc(80px + env(safe-area-inset-top, 0px));
+  z-index: 60;
+  padding: 10px 16px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.35);
+  color: #fff;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+}
+/* AR 模式不開前鏡頭，右上角的自拍小視窗收起來 */
+.ar-mode #self-cam,
+.ar-mode #self-cam-status,
+.ar-mode #btn-pause-cam {
+  display: none !important;
+}
+/* AR 模式：背景直接是後鏡頭，不蓋角色預覽圖和暖色濾鏡 */
+.ar-mode #portrait-preview {
+  display: none !important;
+}
+.ar-mode #video-stage::before {
+  display: none;
+}
+/* AR 模式像相機：不要中間的頭像和「開始視訊」，快門鍵放下面正中間 */
+.ar-mode #call-launcher {
+  display: none !important;
+}
+#ar-shot {
+  z-index: 35 !important;
+  top: auto !important;
+  right: auto !important;
+  left: 50% !important;
+  bottom: calc(190px + env(safe-area-inset-bottom, 0px)) !important;
+  transform: translateX(-50%);
+  width: 74px;
+  height: 74px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 5px solid #fff !important;
+  background: rgb(255 255 255 / 0.35) !important;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 0.35);
+}
+#ar-shot:active {
+  background: rgb(255 255 255 / 0.8) !important;
+}
+/* 躺下／站起來，放在快門右邊；他可以用手指拖、兩指縮放 */
+#ar-fg {
+  touch-action: none;
+}
+#ar-turn {
+  position: fixed;
+  z-index: 35;
+  left: calc(50% + 62px);
+  bottom: calc(205px + env(safe-area-inset-bottom, 0px));
+  padding: 9px 14px;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.35);
+  color: #fff;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+}

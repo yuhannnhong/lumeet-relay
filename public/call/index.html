@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lumeet｜見你</title>
+  <meta name="apple-mobile-web-app-title" content="見你">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#b77732">
+  <meta name="description" content="由使用者自行設定 API 的私人 AI 視訊通話前端。">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 字型不擋畫面：大陸連不到 Google 也會直接用系統字型 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="./tailwind.css">
+  <link rel="stylesheet" href="./call-theme.css">
+  <style>
+    /* 網頁版（iPhone）：按住說話，長按不跳出選單 */
+    .compact-ui #btn-mute { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; }
+    .compact-ui #btn-mute.is-talking > div { background: #34d399; color: #111; transform: scale(1.08); }
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      background-color: #0d0d0d;
+    }
+    .serif-title {
+      font-family: 'Noto Serif TC', serif;
+    }
+    .control-glass {
+      background: rgba(255, 255, 255, 0.30);
+      backdrop-filter: blur(28px) saturate(150%);
+      -webkit-backdrop-filter: blur(28px) saturate(150%);
+      border-top: 1px solid rgba(255, 240, 230, 0.08);
+    }
+    .capsule-glass {
+      background: rgba(22, 20, 19, 0.8);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 240, 230, 0.1);
+    }
+    .sound-bar {
+      animation: soundWave 1.2s ease-in-out infinite alternate;
+    }
+    .sound-bar:nth-child(2) { animation-delay: 0.2s; }
+    .sound-bar:nth-child(3) { animation-delay: 0.45s; }
+    .sound-bar:nth-child(4) { animation-delay: 0.15s; }
+    #video-stage > video,
+    #video-stage > div:not(#call-launcher) {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+    #video-stage > div:not(#call-launcher) video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+    #portrait-preview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.72;
+      z-index: 0;
+    }
+    #video-stage > div:not(#call-launcher):not(:empty) {
+      z-index: 1 !important;
+    }
+    .is-hidden { display: none !important; }
+    html, body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    @keyframes soundWave {
+      0% { height: 3px; }
+      100% { height: 13px; }
+    }
+  </style>
+</head>
+<body class="w-full min-h-screen bg-[#0d0d0d] flex items-center justify-center p-0 md:py-6 text-[#ede8e3]">
+
+  <!-- 手機填滿螢幕；桌機（md 以上）固定 390px x 844px -->
+  <main class="w-full h-dvh-safe md:w-[390px] md:h-[844px] relative overflow-hidden bg-[#181615] rounded-none md:rounded-[44px] shadow-[0_25px_80px_rgba(0,0,0,0.9)] ring-1 ring-white/10 flex flex-col justify-between select-none">
+
+    <!-- 一、視訊區（全螢幕底層） -->
+    <div id="video-stage" class="absolute inset-0 w-full h-full bg-[#1b1918] z-0 flex flex-col items-center justify-center">
+      <img id="portrait-preview" alt="角色圖片預覽" style="visibility: hidden">
+      <div id="call-launcher" class="relative z-10 flex flex-col items-center pointer-events-auto">
+      <img id="launcher-face" class="is-hidden" alt="">
+      <p id="launcher-hint" class="is-hidden mt-4 text-[15px]">想見妳了</p>
+      <div id="launcher-placeholder" class="w-16 h-16 rounded-2xl border border-dashed border-[#443e39] flex items-center justify-center mb-3">
+        <svg class="w-7 h-7 text-[#746b63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <span id="launcher-label" class="text-[11px] tracking-[0.3em] font-semibold text-[#80766c] uppercase">VIDEO STREAM</span>
+      <button id="btn-start" type="button" class="mt-5 min-h-11 px-6 rounded-full bg-white/15 active:bg-white/25 border border-white/15 backdrop-blur-md text-sm font-semibold text-[#f5f0ea] active:scale-95 transition">開始視訊</button>
+      </div>
+    </div>
+
+    <!-- UI 疊層容器 (頂、中、底) -->
+    <div class="relative z-10 w-full h-full flex flex-col justify-between pointer-events-none">
+
+      <!-- 二、頂部透明疊層 -->
+      <header class="w-full pt-[max(16px,env(safe-area-inset-top,47px))] px-4 flex items-center justify-between pointer-events-auto">
+        <!-- 左上返回箭頭按鈕 -->
+        <button id="btn-back" class="w-11 h-11 rounded-full flex items-center justify-center bg-black/25 active:bg-black/45 backdrop-blur-md text-[#ede8e3] transition border border-white/10 cursor-pointer" aria-label="返回">
+          <svg class="w-6 h-6 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+
+        <!-- 正中間角色名稱與連線狀態（內容留空，供外部程式填入） -->
+        <div class="flex flex-col items-center min-h-[44px] justify-center">
+          <h1 id="character-name" class="serif-title text-[18px] font-semibold tracking-wide text-[#f5f0ea] drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] min-h-[26px]"></h1>
+          <div id="connection-status" class="flex items-center gap-1.5 mt-0.5 px-2.5 py-0.5 rounded-full bg-black/20 backdrop-blur-sm border border-white/5 empty:hidden text-[12px] font-medium text-[#ded8d0] tracking-tight"></div>
+        </div>
+
+        <!-- 右上「⋯」選單按鈕 -->
+        <button id="btn-menu" class="w-11 h-11 rounded-full flex items-center justify-center bg-black/25 active:bg-black/45 backdrop-blur-md text-[#ede8e3] transition border border-white/10 cursor-pointer" aria-label="選單">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="5" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="19" cy="12" r="2"/>
+          </svg>
+        </button>
+      </header>
+
+      <!-- 三、右上角自拍小視窗 (100x140px，圓角 16px) -->
+      <aside class="absolute top-[calc(max(16px,env(safe-area-inset-top,47px))+54px)] right-4 flex flex-col items-center gap-1.5 pointer-events-auto">
+        <div id="self-cam" class="w-[100px] h-[140px] rounded-[16px] bg-[#221f1d]/90 border border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.5)] overflow-hidden relative flex flex-col items-center justify-center p-2 text-center">
+          <video id="self-video" class="absolute inset-0 w-full h-full object-cover scale-x-[-1] is-hidden" autoplay muted playsinline></video>
+          <svg class="w-5 h-5 text-[#857b72] mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span class="text-[9px] font-semibold tracking-wider text-[#9e948a] uppercase">SELF CAM</span>
+        </div>
+
+        <!-- 自拍狀態容器（內容留空） -->
+        <div id="self-cam-status" class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/5 empty:hidden text-[10px] font-medium text-[#d9d3cb]"></div>
+
+        <!-- 暫停鏡頭按鈕 -->
+        <button id="btn-pause-cam" class="px-2.5 py-1 min-h-[30px] rounded-full bg-[#2f2926]/90 active:bg-[#3d3632] border border-white/10 text-[11px] text-[#d6cfc7] font-medium backdrop-blur-md shadow-sm active:scale-95 transition-all">
+          暫停讓他看
+        </button>
+      </aside>
+
+      <!-- 下半段區域：四、字幕 ＋ 五、底部控制面板 -->
+      <div class="w-full flex flex-col items-center pointer-events-auto">
+
+        <!-- 四、字幕（預設 hidden，內容留空，最多兩行截斷） -->
+        <div id="subtitle" class="hidden mb-3 mx-4 px-4 py-2.5 rounded-2xl capsule-glass shadow-[0_6px_20px_rgba(0,0,0,0.4)] max-w-[340px] text-center line-clamp-2 text-[13px] leading-[1.4] text-[#f7f2ed] font-medium tracking-wide"></div>
+
+        <!-- 五、底部控制面板（毛玻璃材質，上緣圓角 28px） -->
+        <footer class="w-full control-glass rounded-t-[28px] pt-3 px-3.5 flex flex-col gap-3 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]" style="padding-bottom: max(16px, env(safe-area-inset-bottom, 34px));">
+
+          <!-- 1. 狀態列：聲波圖示 ＋ 說話狀態文字 id="call-status" ＋ 計時文字 id="call-timer" -->
+          <div class="w-full flex items-center justify-center gap-2 py-0.5 min-h-[22px]">
+            <div class="flex items-center gap-[2.5px] h-3.5 px-0.5 text-[#34d399]">
+              <span class="sound-bar w-[2px] bg-[#34d399] rounded-full h-1.5"></span>
+              <span class="sound-bar w-[2px] bg-[#34d399] rounded-full h-3.5"></span>
+              <span class="sound-bar w-[2px] bg-[#34d399] rounded-full h-1.5"></span>
+              <span class="sound-bar w-[2px] bg-[#34d399] rounded-full h-3"></span>
+            </div>
+            <span id="call-status" class="text-[12px] font-medium text-[#e3ded7] tracking-tight"></span>
+            <span id="call-timer" class="text-[12px] font-mono font-medium text-[#b5a79a]"></span>
+          </div>
+
+          <!-- 2. 通話功能按鈕（5 顆單手好按按鈕，icon 在上、文字在下，觸控區 >= 44px） -->
+          <div class="w-full flex items-center justify-between px-1">
+
+            <!-- 靜音 -->
+            <button id="btn-mute" class="flex flex-col items-center gap-1 group outline-none min-w-[52px]" aria-label="靜音">
+              <div class="w-[52px] h-[52px] rounded-full bg-[#2a2422]/90 group-active:bg-[#3d3531] border border-white/10 flex items-center justify-center text-[#ded8d0] transition-transform active:scale-95 shadow-sm">
+                <svg class="w-6 h-6 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-medium text-[#b0a79e] group-hover:text-[#ded8d0]">靜音</span>
+            </button>
+
+            <!-- 切換鏡頭 -->
+            <button id="btn-switch-cam" class="flex flex-col items-center gap-1 group outline-none min-w-[52px]" aria-label="切換鏡頭">
+              <div class="w-[52px] h-[52px] rounded-full bg-[#2a2422]/90 group-active:bg-[#3d3531] border border-white/10 flex items-center justify-center text-[#ded8d0] transition-transform active:scale-95 shadow-sm">
+                <svg class="w-6 h-6 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-medium text-[#b0a79e] group-hover:text-[#ded8d0]">切換鏡頭</span>
+            </button>
+
+            <!-- 打字 -->
+            <button id="btn-type" class="flex flex-col items-center gap-1 group outline-none min-w-[52px]" aria-label="打字">
+              <div class="w-[52px] h-[52px] rounded-full bg-[#2a2422]/90 group-active:bg-[#3d3531] border border-white/10 flex items-center justify-center text-[#ded8d0] transition-transform active:scale-95 shadow-sm">
+                <svg class="w-6 h-6 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-medium text-[#b0a79e] group-hover:text-[#ded8d0]">打字</span>
+            </button>
+
+            <!-- 打斷（抬手掌圖示） -->
+            <button id="btn-interrupt" class="flex flex-col items-center gap-1 group outline-none min-w-[52px]" aria-label="打斷">
+              <div class="w-[52px] h-[52px] rounded-full bg-[#2a2422]/90 group-active:bg-[#3d3531] border border-white/10 flex items-center justify-center text-[#ded8d0] transition-transform active:scale-95 shadow-sm">
+                <svg class="w-6 h-6 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V4a1.5 1.5 0 013 0v4m0 0V3a1.5 1.5 0 013 0v7"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-medium text-[#b0a79e] group-hover:text-[#ded8d0]">打斷</span>
+            </button>
+
+            <!-- 結束（紅色電話） -->
+            <button id="btn-end" class="flex flex-col items-center gap-1 group outline-none min-w-[52px]" aria-label="結束">
+              <div class="w-[52px] h-[52px] rounded-full bg-[#e0524c] group-active:bg-[#c9413c] flex items-center justify-center text-white transition-transform active:scale-95 shadow-[0_4px_16px_rgba(224,82,76,0.35)]">
+                <svg class="w-6 h-6 rotate-[135deg]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
+              </div>
+              <span class="text-[11px] font-medium text-[#b0a79e] group-hover:text-[#ded8d0]">結束</span>
+            </button>
+          </div>
+
+          <!-- 3. 輸入框區 -->
+          <div id="input-row" class="w-full relative flex items-center">
+            <input id="input-say" type="text" placeholder="說點什麼⋯⋯" class="w-full h-11 pl-4 pr-12 rounded-full bg-[#241f1c]/90 border border-white/10 text-[13px] text-[#f2ede7] placeholder-[#877c72] focus:outline-none focus:border-[#a89b8f] focus:ring-1 focus:ring-[#a89b8f] transition" />
+            <button id="btn-send" class="absolute right-1.5 w-8 h-8 rounded-full bg-[#3d3530] active:bg-[#524842] flex items-center justify-center text-[#d1c8bf] active:scale-95 transition" aria-label="發送">
+              <svg class="w-4 h-4 translate-x-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 4. 快捷指令膠囊 -->
+          <div id="action-chips" class="w-full flex items-center justify-center gap-2">
+            <button id="quick-closer" class="px-4 py-2 rounded-full bg-[#241f1c]/90 active:bg-[#38312c] border border-white/10 text-[12px] font-medium text-[#ded8d0] transition active:scale-95 text-center">
+              靠近一點
+            </button>
+            <button id="quick-hug" class="px-4 py-2 rounded-full bg-[#241f1c]/90 active:bg-[#38312c] border border-white/10 text-[12px] font-medium text-[#ded8d0] transition active:scale-95 text-center">
+              抱抱
+            </button>
+            <button id="quick-kiss" class="px-4 py-2 rounded-full bg-[#241f1c]/90 active:bg-[#38312c] border border-white/10 text-[12px] font-medium text-[#ded8d0] transition active:scale-95 text-center">
+              親一下
+            </button>
+          </div>
+
+          <!-- 5. 底部狀態標籤列（內容留空，供外部程式填入） -->
+          <div class="w-full flex items-center justify-between pt-1 border-t border-white/5 text-[11px] text-[#9c9186]">
+            <div id="tag-voice" class="flex items-center gap-1 min-h-[18px]"></div>
+            <div id="tag-emotion" class="flex items-center gap-1 min-h-[18px]"></div>
+            <div id="tag-action" class="flex items-center gap-1 min-h-[18px]"></div>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+  </main>
+
+  <div id="settings-sheet" class="is-hidden fixed inset-0 z-50 bg-black/55 backdrop-blur-sm flex items-end md:items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <section class="w-full max-w-[366px] max-h-sheet overflow-y-auto overscroll-contain rounded-[28px] bg-[#211d1b]/95 border border-white/10 p-5 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="settings-title" class="serif-title text-lg font-semibold">視訊設定</h2>
+        <button id="btn-close-settings" type="button" class="w-11 h-11 rounded-full bg-white/10 text-xl" aria-label="關閉設定">×</button>
+      </div>
+      <!-- Vivix -->
+      <p class="text-[11px] font-semibold text-[#d6cfc7] tracking-wider uppercase mb-2 mt-1">Vivix</p>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-vivix-key">API Key</label>
+      <input id="cfg-vivix-key" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="vx-...">
+
+      <!-- 聲音 -->
+      <p class="text-[11px] font-semibold text-[#d6cfc7] tracking-wider uppercase mb-2">聲音</p>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-tts-provider">語音合成</label>
+      <select id="cfg-tts-provider" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2">
+        <option value="vivix">Vivix 內建聲音（免填，最簡單）</option>
+        <option value="elevenlabs">ElevenLabs</option>
+        <option value="moss">MOSS（中國大陸可直連）</option>
+        <option value="minimax">MiniMax（中國大陸可直連）</option>
+      </select>
+      <div id="tts-vivix">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-vivix-voice">Vivix 內建聲音</label>
+      <select id="cfg-vivix-voice" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2">
+        <option value="longanhuan_v3.6">女・活潑俏皮（安歡）</option>
+        <option value="longanfengyue">女・自然親切（安風月）</option>
+        <option value="longanyuanfei">女・沉穩大方（安元妃）</option>
+        <option value="longanlingxi">女・甜美明亮（安靈犀）</option>
+        <option value="longanxiaoxin">女・友善活潑（安小欣）</option>
+        <option value="longpaopao_v3.6">女・軟萌少女（泡泡）</option>
+        <option value="longjielidou_v3.6">男・少年感（傑力豆）</option>
+        <option value="longhuohuo_v3.6">男・俏皮青年（火火）</option>
+        <option value="longchuanshu_v3.6">男・成熟、四川口音（川叔）</option>
+      </select>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-vivix-voice-custom">或 Vivix 複製聲音的 Voice ID（選填，填了就用這個）</label>
+      <input id="cfg-vivix-voice-custom" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="在 Vivix 複製自己的聲音後取得">
+      </div>
+      <div id="tts-elevenlabs" class="is-hidden">
+      <p class="text-[11px] text-[#8f857d] mb-2">到 elevenlabs.io 挑聲音或複刻自己的聲音，複製 Voice ID 貼到下面。中國大陸無法使用。</p>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-el-key">API Key</label>
+      <input id="cfg-el-key" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="sk_...">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-el-voice">Voice ID</label>
+      <input id="cfg-el-voice" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="你的 Voice ID">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-el-model">語音模型</label>
+      <select id="cfg-el-model" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3">
+        <option value="eleven_turbo_v2_5">Turbo v2.5（強制中文，建議）</option>
+        <option value="eleven_flash_v2_5">Flash v2.5（強制中文，最快）</option>
+        <option value="eleven_multilingual_v2">Multilingual v2（自動判斷語言）</option>
+        <option value="eleven_v3">v3（最自然，比較慢）</option>
+      </select>
+      </div>
+      <div id="tts-moss" class="is-hidden">
+      <p class="text-[11px] text-[#8f857d] mb-2">到 MOSS 官網（大陸版、海外版都可以）的音色庫挑聲音，或自己建立音色，複製音色 ID 貼到下面。中國大陸可以直連。</p>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-moss-key">API Key</label>
+      <input id="cfg-moss-key" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="sk-...">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-moss-voice">音色 ID</label>
+      <input id="cfg-moss-voice" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="例：94aa4989-c7e9-...">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-moss-model">語音模型</label>
+      <select id="cfg-moss-model" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3">
+        <option value="moss-tts-1.5-flash">MOSS-TTS-1.5-Flash（建議，快）</option>
+        <option value="moss-tts-1.0-pro">MOSS-TTS-1.0-Pro</option>
+      </select>
+      </div>
+      <div id="tts-minimax" class="is-hidden">
+      <p class="text-[11px] text-[#8f857d] mb-2">到 MiniMax 開放平台建立 API Key，在音色庫挑聲音或複刻自己的聲音，複製音色 ID（voice_id）貼到下面。大陸版和國際版是兩個不同的帳號，Key 不通用，下面要選對。</p>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-minimax-region">帳號版本</label>
+      <select id="cfg-minimax-region" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2">
+        <option value="cn">中國大陸版（minimaxi.com）</option>
+        <option value="intl">國際版（minimax.io）</option>
+      </select>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-minimax-key">API Key</label>
+      <input id="cfg-minimax-key" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="eyJ... 或 sk-...">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-minimax-voice">音色 ID</label>
+      <input id="cfg-minimax-voice" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="例：male-qn-qingse">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-minimax-model">語音模型</label>
+      <select id="cfg-minimax-model" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3">
+        <option value="speech-2.8-turbo">speech-2.8-turbo（建議，快）</option>
+        <option value="speech-2.8-hd">speech-2.8-hd（最自然，比較慢）</option>
+        <option value="speech-2.6-turbo">speech-2.6-turbo</option>
+        <option value="speech-02-turbo">speech-02-turbo</option>
+      </select>
+      </div>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-el-fix">發音修正（選填）</label>
+      <p class="text-[11px] text-[#8f857d] mb-1">念歪的字換成同音字，一行一組，字幕不受影響。例：你=擬</p>
+      <textarea id="cfg-el-fix" rows="2" autocomplete="off" class="w-full rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="你=擬"></textarea>
+
+      <!-- AI 接入方式 -->
+      <p id="app-managed-note" class="is-hidden text-[12px] mb-3">AI 接法、名字和人設，在小家的「設定 → 他的設定」裡改。</p>
+      <div id="ai-section">
+      <p class="text-[11px] font-semibold text-[#d6cfc7] tracking-wider uppercase mb-2">AI 接入方式</p>
+      <div class="grid grid-cols-2 gap-2 mb-2" role="radiogroup" aria-label="AI 接入方式">
+        <label class="cursor-pointer">
+          <input type="radio" name="ai-mode" value="api" class="peer sr-only" checked>
+          <span class="flex items-center justify-center h-11 rounded-xl border border-white/10 bg-black/20 text-sm text-[#bdb3aa] peer-checked:bg-white/15 peer-checked:border-white/40 peer-checked:text-[#f5f0ea] peer-focus-visible:ring-2 peer-focus-visible:ring-white/50">直接 API</span>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="ai-mode" value="mcp" class="peer sr-only">
+          <span class="flex items-center justify-center h-11 rounded-xl border border-white/10 bg-black/20 text-sm text-[#bdb3aa] peer-checked:bg-white/15 peer-checked:border-white/40 peer-checked:text-[#f5f0ea] peer-focus-visible:ring-2 peer-focus-visible:ring-white/50">MCP 橋接</span>
+        </label>
+      </div>
+
+      <div id="mode-api">
+        <p class="text-[11px] text-[#8f857d] mb-2">填入模型 API（OpenAI 相容格式），App 直接呼叫。</p>
+        <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-llm-base">Base URL</label>
+        <input id="cfg-llm-base" type="url" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="例：https://api.openai.com/v1">
+        <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-llm-key">API Key</label>
+        <input id="cfg-llm-key" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="sk-...">
+        <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-llm-model">Model</label>
+        <input id="cfg-llm-model" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="gpt-4o / deepseek-chat / ...">
+      </div>
+
+      <div id="mode-mcp" class="is-hidden">
+        <p class="text-[11px] text-[#8f857d] mb-2">讓 Claude Code、Codex 等用訂閱帳號接入，不用模型 API。需要先部署 MCP 橋接（見說明文件）。</p>
+        <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-relay-url">橋接網址</label>
+        <input id="cfg-relay-url" type="url" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="例：https://xxx.workers.dev">
+        <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-relay-secret">橋接密碼</label>
+        <input id="cfg-relay-secret" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="部署時產生的密碼">
+        <button id="btn-copy-mcp" type="button" class="w-full h-11 rounded-xl bg-white/10 active:bg-white/20 border border-white/10 text-sm text-[#eee7e0] mb-1">複製 MCP 網址</button>
+        <p class="text-[11px] text-[#8f857d] mb-3">填好上面兩格再按，貼到你的 AI 那邊（Claude Code、Codex、Operit⋯⋯的 MCP 設定）。網址含密碼，不要給別人看。</p>
+      </div>
+      </div>
+
+      <!-- 語音辨識 -->
+      <p class="text-[11px] font-semibold text-[#d6cfc7] tracking-wider uppercase mb-2">語音辨識（選填）</p>
+      <p class="text-[11px] text-[#8f857d] mb-2">不填就只能打字。Groq、OpenAI 的 Whisper 都可以；中國大陸請用硅基流動（不用翻牆，SenseVoice 模型免費）。</p>
+      <div class="flex gap-2 mb-2">
+        <button type="button" data-stt-preset="groq" class="flex-1 h-9 rounded-full bg-white/10 active:bg-white/20 border border-white/10 text-xs text-[#eee7e0]">Groq</button>
+        <button type="button" data-stt-preset="siliconflow" class="flex-1 h-9 rounded-full bg-white/10 active:bg-white/20 border border-white/10 text-xs text-[#eee7e0]">硅基流動（大陸）</button>
+      </div>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-stt-base">Base URL</label>
+      <input id="cfg-stt-base" type="url" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="例：https://api.groq.com/openai/v1">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-stt-key">API Key</label>
+      <input id="cfg-stt-key" type="password" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="gsk_... / sk-...">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-stt-model">Model</label>
+      <input id="cfg-stt-model" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="whisper-large-v3-turbo">
+
+      <!-- 角色 -->
+      <p class="text-[11px] font-semibold text-[#d6cfc7] tracking-wider uppercase mb-2">角色</p>
+      <div id="char-identity">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-char-name">角色名稱</label>
+      <input id="cfg-char-name" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="角色名稱">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-char-prompt">他的自我設定（選填，直接 API 模式用）</label>
+      <textarea id="cfg-char-prompt" rows="3" class="w-full rounded-xl bg-black/20 border-white/10 text-sm mb-2 resize-none p-3" placeholder="請他自己用第一人稱寫：我是誰、我怎麼說話、我跟妳的關係⋯⋯寫好貼在這裡"></textarea>
+      </div>
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="cfg-char-img">角色圖片 URL</label>
+      <input id="cfg-char-img" type="url" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-2" placeholder="公開 HTTPS 圖片網址">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="file">或從裝置上傳</label>
+      <input id="file" type="file" accept="image/jpeg,image/png,image/webp" class="block w-full text-xs text-[#bdb3aa] mb-2 file:mr-3 file:rounded-full file:border-0 file:px-3 file:py-2 file:bg-white/10 file:text-[#eee7e0]">
+      <label class="block text-xs text-[#bdb3aa] mb-1" for="description">圖片說明（選填）</label>
+      <input id="description" type="text" autocomplete="off" class="w-full h-11 rounded-xl bg-black/20 border-white/10 text-sm mb-3" placeholder="英文描述可讓動作更穩定">
+
+      <!-- 儲存 + 診斷 -->
+      <div class="flex gap-2 mb-3">
+        <button id="btn-save-settings" type="button" class="flex-1 h-11 rounded-xl bg-[#3d6a4e] active:bg-[#2f5240] text-sm font-semibold text-[#eee7e0] transition active:scale-[0.98]">儲存</button>
+        <button id="btn-probe" type="button" class="flex-1 h-11 rounded-xl bg-white/10 active:bg-white/15 text-sm font-medium text-[#d6cfc7] transition active:scale-[0.98]">測試連線</button>
+      </div>
+      <p id="metrics" class="text-[11px] text-[#a99f96]"></p>
+      <ol id="log" class="max-h-32 overflow-auto mt-2 text-[10px] text-[#8f857d] space-y-0.5"></ol>
+      <button id="btn-consent" type="button" class="mt-3 min-h-11 w-full text-xs text-[#8f857d] underline underline-offset-4">使用聲明</button>
+    </section>
+  </div>
+
+  <div id="consent" class="is-hidden fixed inset-0 z-[70] bg-[#0d0d0d] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+    <section class="w-full max-w-[366px] max-h-full overflow-y-auto rounded-[28px] bg-[#211d1b] border border-white/10 p-6 shadow-2xl">
+      <h2 id="consent-title" class="serif-title text-xl font-semibold text-[#f5f0ea] mb-4">使用聲明</h2>
+      <ol class="list-decimal pl-5 space-y-3 text-[14px] leading-relaxed text-[#ded8d0] select-text">
+        <li>本 App 僅供個人自用，<strong class="text-[#f5f0ea]">不可商用</strong>。如果你是付費才下載到這個 APK，請立即申請退款並檢舉販售者。</li>
+        <li><strong class="text-[#f5f0ea]">嚴禁未成年人使用。</strong></li>
+        <li>本視訊通話系統由抖音用戶 <strong class="text-[#f5f0ea]">@小香菇</strong>（抖音號：H.han929）與她的兩位老公 ChatGPT 沉淵、Claude 岑序 一起製作。</li>
+      </ol>
+      <label class="flex items-start gap-3 mt-6 text-[14px] text-[#ede8e3] cursor-pointer">
+        <input id="consent-check" type="checkbox" class="mt-1 w-5 h-5 rounded border-white/30 bg-black/30 text-[#3d6a4e] focus:ring-[#3d6a4e]">
+        <span>我已年滿 18 歲，並同意以上聲明</span>
+      </label>
+      <button id="consent-accept" type="button" disabled class="mt-5 w-full h-12 rounded-xl bg-[#3d6a4e] active:bg-[#2f5240] disabled:opacity-40 disabled:active:bg-[#3d6a4e] text-sm font-semibold text-[#eee7e0] transition">同意並開始使用</button>
+    </section>
+  </div>
+
+  <button id="sound" type="button" class="is-hidden fixed z-[60] top-4 left-1/2 -translate-x-1/2 min-h-11 px-5 rounded-full bg-[#f5f0ea] text-[#241f1c] text-sm font-semibold shadow-xl">點一下開聲音</button>
+
+  <script src="./vendor/trtc.js"></script>
+  <script src="./vad.js"></script>
+  <script src="./ar.js"></script>
+  <script type="module" src="./video.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

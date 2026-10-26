@@ -1,0 +1,351 @@
+/* Exact palette values supplied by 涵; soft radial layers create the blurred ambient blobs. */
+.app[data-theme='mint'] {
+  --accent: #3ba99c;
+  --ink: #2f3e46;
+  --muted: #53666b;
+  --glass: rgba(255, 255, 255, 0.36);
+  --chip-bg: rgba(255, 255, 255, 0.5);
+  --rim: rgba(255, 255, 255, 0.86);
+  --shade: rgba(46, 100, 92, 0.12);
+  --scene: url('assets/theme-mint.webp');
+}
+.app[data-theme='lavender'] {
+  --accent: #8e7cc3;
+  --ink: #3d2c4e;
+  --muted: #71627d;
+  --glass: rgba(255, 255, 255, 0.34);
+  --chip-bg: rgba(248, 240, 255, 0.53);
+  --rim: rgba(255, 249, 255, 0.88);
+  --shade: rgba(86, 57, 117, 0.13);
+  --scene: url('assets/theme-lavender.webp');
+}
+.app[data-theme='sakura'] {
+  --accent: #e57a9a;
+  --ink: #4a3238;
+  --muted: #84616b;
+  --glass: rgba(255, 255, 255, 0.35);
+  --chip-bg: rgba(255, 244, 240, 0.53);
+  --rim: rgba(255, 250, 243, 0.92);
+  --shade: rgba(133, 70, 83, 0.12);
+  --scene: url('assets/theme-sakura.webp');
+}
+.app[data-theme='midnight'] {
+  --accent: #f2c86b;
+  --ink: #f3f0fa;
+  --muted: #c6bfd8;
+  --glass: rgba(255, 255, 255, 0.1);
+  --chip-bg: rgba(255, 255, 255, 0.09);
+  --rim: rgba(245, 238, 255, 0.66);
+  --shade: rgba(0, 0, 16, 0.3);
+  --scene: url('assets/aurora-lake.webp');
+}
+.app[data-theme='twilight'] {
+  --accent: #5b7db1;
+  --ink: #2b3445;
+  --muted: #596578;
+  --glass: rgba(255, 255, 255, 0.34);
+  --chip-bg: rgba(242, 242, 252, 0.52);
+  --rim: rgba(249, 249, 255, 0.87);
+  --shade: rgba(54, 70, 101, 0.15);
+  --scene: url('assets/theme-twilight.webp');
+}
+.app:not([data-theme='amber']) {
+  color: var(--ink);
+}
+.app:not([data-theme='amber']) .scene-tint {
+  background: none;
+  mix-blend-mode: normal;
+}
+.app:not([data-theme='amber']) .light-dust {
+  opacity: 0;
+}
+.app[data-theme='midnight'] .light-dust {
+  opacity: 0.75;
+  background-image:
+    radial-gradient(circle at 14% 18%, #fff9e7 0 0.8px, transparent 1.6px),
+    radial-gradient(circle at 72% 42%, #f3e7ff 0 0.6px, transparent 1.4px),
+    radial-gradient(circle at 43% 81%, #cfc4f3 0 0.7px, transparent 1.5px);
+  background-size:
+    171px 257px,
+    233px 311px,
+    199px 217px;
+  mix-blend-mode: screen;
+}
+.app:not([data-theme='amber']) .glass {
+  background:
+    linear-gradient(
+      130deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.04) 55%,
+      rgba(255, 255, 255, 0.18)
+    ),
+    var(--glass);
+  border-color: var(--rim);
+  box-shadow:
+    inset 0 1px 2px #ffffffba,
+    inset 0 -1px 4px #ffffff40,
+    0 7px 25px var(--shade);
+}
+.app:not([data-theme='amber']) .glass:before {
+  border-color: rgba(255, 255, 255, 0.38);
+}
+.app:not([data-theme='amber']) .topbar,
+.app:not([data-theme='amber']) .section-title,
+.app:not([data-theme='amber']) .setting-title,
+.app:not([data-theme='amber']) .story,
+.app:not([data-theme='amber']) .call-page,
+.app:not([data-theme='amber']) .sanctuary-page {
+  color: var(--ink);
+  text-shadow: none;
+}
+.app:not([data-theme='amber']) .topbar > .round {
+  color: var(--ink);
+}
+.app:not([data-theme='amber']) .pill,
+.app:not([data-theme='amber']) .badge,
+.app:not([data-theme='amber']) .quick-actions button,
+.app:not([data-theme='amber']) .round,
+.app:not([data-theme='amber']) .date-chip span {
+  color: var(--ink);
+  background: var(--chip-bg);
+  border-color: var(--rim);
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 3px #ffffff61,
+    0 2px 7px var(--shade);
+}
+.app:not([data-theme='amber']) .hero-label strong,
+.app:not([data-theme='amber']) .hero-days,
+.app:not([data-theme='amber']) .sender,
+.app:not([data-theme='amber']) .nav-item.active,
+.app:not([data-theme='amber']) .hero-days .heart,
+.app:not([data-theme='amber']) .support .thanks {
+  color: var(--accent);
+  text-shadow: none;
+}
+.app:not([data-theme='amber']) .nav-item,
+.app:not([data-theme='amber']) .feature p,
+.app:not([data-theme='amber']) .setting-label,
+.app:not([data-theme='amber']) .setting-value,
+.app:not([data-theme='amber']) .home-card,
+.app:not([data-theme='amber']) .enter-home,
+.app:not([data-theme='amber']) .bubble,
+.app:not([data-theme='amber']) .achievement,
+.app:not([data-theme='amber']) .sticker-empty {
+  color: var(--ink);
+}
+.app:not([data-theme='amber']) .setting-label small,
+.app:not([data-theme='amber']) .hero-note,
+.app:not([data-theme='amber']) .feed-head small,
+.app:not([data-theme='amber']) .sheet .sheet-note,
+.app:not([data-theme='amber']) .activity .timestamp,
+.app:not([data-theme='amber']) .achievement p,
+.app:not([data-theme='amber']) .home-card p,
+.app:not([data-theme='amber']) .enter-home small {
+  color: var(--muted);
+}
+.app:not([data-theme='amber']) .icon-disc {
+  color: var(--accent);
+  background: var(--chip-bg);
+  border-color: var(--rim);
+  box-shadow:
+    inset 0 1px 3px #ffffff80,
+    0 2px 8px var(--shade);
+}
+.app:not([data-theme='amber']) .gold,
+.app:not([data-theme='amber']) .round.gold,
+.app:not([data-theme='amber']) .outgoing .bubble {
+  background: var(--accent);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--accent), white 18%), var(--accent));
+  color: white;
+  border-color: var(--rim);
+  box-shadow:
+    inset 0 1px 3px #ffffff80,
+    0 3px 12px var(--shade);
+  text-shadow: none;
+}
+.app:not([data-theme='amber']) .bubble,
+.app:not([data-theme='amber']) .achievement,
+.app:not([data-theme='amber']) .mood,
+.app:not([data-theme='amber']) .feed-comment,
+.app:not([data-theme='amber']) .composer-input,
+.app:not([data-theme='amber']) .form-input {
+  background-color: var(--chip-bg);
+  border-color: var(--rim);
+}
+.app:not([data-theme='amber']) .sheet {
+  color: var(--ink);
+  background-color: rgba(246, 242, 250, 0.94);
+}
+.app[data-theme='midnight'] .glass {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(245, 238, 255, 0.66);
+  box-shadow:
+    inset 0 1px 2px #ffffff2e,
+    0 7px 28px #03051455;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.app[data-theme='midnight'] .glass:before {
+  border-color: transparent;
+  box-shadow: none;
+}
+.app[data-theme='midnight'] .glass:after {
+  opacity: 0.3;
+}
+.app[data-theme='midnight'] .bubble,
+.app[data-theme='midnight'] .achievement {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 2px #ffffff2e,
+    0 3px 12px #03051433;
+}
+.app[data-theme='midnight'] .gold,
+.app[data-theme='midnight'] .round.gold,
+.app[data-theme='midnight'] .outgoing .bubble {
+  background: #f2c86b;
+  color: #251d38;
+  border-color: #ffe7a8;
+  box-shadow:
+    inset 0 1px 3px #ffefd6a1,
+    0 0 13px #f2c86b26;
+}
+.app[data-theme='midnight'] .sheet {
+  background: rgba(29, 28, 53, 0.96);
+}
+.app[data-theme='midnight'] .form-input,
+.app[data-theme='midnight'] .search-box,
+.app[data-theme='midnight'] .background-preview,
+.app[data-theme='midnight'] .sticker-card,
+.app[data-theme='midnight'] .emoji-strip button {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+}
+.app[data-theme='midnight'] .call-quote,
+.app[data-theme='midnight'] .call-extra button,
+.app[data-theme='midnight'] .call-control {
+  color: var(--ink);
+}
+.app[data-custom-background='true'] .scene-tint {
+  background: linear-gradient(180deg, rgba(251, 245, 237, 0.2), transparent 40%);
+  mix-blend-mode: normal;
+}
+.app[data-theme='midnight'][data-custom-background='true'] .scene-tint {
+  background: rgba(10, 12, 34, 0.44);
+}
+.background-help {
+  font-size: 13px !important;
+  color: var(--muted);
+}
+.background-preview {
+  height: 160px;
+  margin: 14px 0 12px;
+  border: 1px solid var(--rim);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--scene) center / cover;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.background-preview img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+.background-file {
+  position: relative;
+  width: 100%;
+  padding: 10px;
+  color: var(--accent);
+}
+.background-file input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.background-file:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.background-file svg,
+.background-preview-button svg {
+  width: 18px;
+  height: 18px;
+}
+.base64-input {
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, monospace !important;
+  font-size: 16px !important;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+.background-preview-button {
+  width: 100%;
+  font-size: 12px;
+  padding: 9px;
+}
+.background-reset {
+  display: block;
+  margin: 15px auto 0;
+  text-decoration: underline;
+  font-size: 12px;
+  color: var(--muted);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app:not([data-theme='amber']) .glass {
+    background: rgba(246, 244, 250, 0.94);
+  }
+  .app[data-theme='midnight'] .glass {
+    background: #29273d;
+  }
+}
+.app:not([data-theme='amber']) .feature small span {
+  background: var(--chip-bg);
+  color: var(--muted);
+}
+.app:not([data-theme='amber']) .composer-input input::placeholder,
+.app:not([data-theme='amber']) .composer-input textarea::placeholder {
+  color: var(--muted);
+}
+.app:not([data-theme='amber']) .polaroid {
+  color: #3d2c27;
+}
+.app:not([data-theme='amber']) .feed-actions button:first-child {
+  color: var(--accent);
+}
+.app:not([data-theme='amber']) .round.decline {
+  background: linear-gradient(130deg, #ffe6e0, #f5b1a3);
+  color: #ad0707;
+  border-color: #ffe5d2;
+}
+html[data-theme='mint'] {
+  --outside-scene: linear-gradient(145deg, #a5d9c6, #d4f2f2, #effbf7);
+}
+html[data-theme='lavender'] {
+  --outside-scene: linear-gradient(145deg, #b9a5d8, #dac9e6, #d6acc7);
+}
+html[data-theme='sakura'] {
+  --outside-scene: linear-gradient(145deg, #f2bdcf, #f4d1c0, #f8ebd5);
+}
+html[data-theme='midnight'] {
+  --outside-scene: linear-gradient(145deg, #080f23, #171936, #23142e);
+}
+html[data-theme='twilight'] {
+  --outside-scene: linear-gradient(145deg, #92a8c3, #b9b4cc, #d9c7b1);
+}
+html[data-theme]:not([data-theme='amber']) .desktop-atmosphere {
+  background-image: var(--outside-scene);
+}
+/* 霧藍黃昏的背景是暗的海：直接壓在背景上的字改淺色 */
+.app[data-theme='twilight'] .brand span,
+.app[data-theme='twilight'] .top-title,
+.app[data-theme='twilight'] .section-title h2 {
+  color: #fff4e6;
+  text-shadow: 0 1px 8px #0b1a3399;
+}
